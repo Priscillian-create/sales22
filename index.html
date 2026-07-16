@@ -710,7 +710,8 @@
       sales: [],
       expenses: [],
       customers: {},
-      stockLog: []
+      stockLog: [],
+      pendingSync: []
     };
 
     let state = load();
@@ -721,7 +722,9 @@
       const raw = localStorage.getItem(storeKey);
       if (!raw) return structuredClone(demo);
       try {
-        return { ...structuredClone(demo), ...JSON.parse(raw) };
+        const loaded = { ...structuredClone(demo), ...JSON.parse(raw) };
+        loaded.pendingSync ||= [];
+        return loaded;
       } catch {
         return structuredClone(demo);
       }
@@ -801,6 +804,50 @@
       return error;
     }
 
+    function queueSync(type, payload) {
+      state.pendingSync ||= [];
+      state.pendingSync.push({ id: uid("Q"), type, payload, attempts: 0, createdAt: new Date().toISOString(), lastError: "" });
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      syncPending();
+    }
+
+    let syncRunning = false;
+
+    async function syncPending() {
+      if (syncRunning || !db || !state.pendingSync?.length) return;
+      syncRunning = true;
+      const remaining = [];
+      for (const item of state.pendingSync) {
+        try {
+          await runSyncItem(item);
+        } catch (error) {
+          item.attempts = Number(item.attempts || 0) + 1;
+          item.lastError = error.message || String(error);
+          remaining.push(item);
+        }
+      }
+      state.pendingSync = remaining;
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      syncRunning = false;
+      if (state.pendingSync.length && navigator.onLine) setTimeout(syncPending, 500);
+    }
+
+    async function runSyncItem(item) {
+      if (!navigator.onLine) throw new Error("Browser is offline");
+      if (!db) throw new Error("Supabase is not available");
+      switch (item.type) {
+        case "settings": return cloudSaveSettings(item.payload);
+        case "product": return cloudSaveProduct(item.payload);
+        case "products": return cloudSaveProducts(item.payload);
+        case "sale": return cloudSaveSale(item.payload);
+        case "customer": return cloudSaveCustomer(item.payload);
+        case "expense": return cloudSaveExpense(item.payload);
+        case "deleteExpense": return cloudDeleteExpense(item.payload.id);
+        case "stockLog": return cloudSaveStockLog(item.payload);
+        default: throw new Error(`Unknown sync item: ${item.type}`);
+      }
+    }
+
     async function loadCloudData() {
       if (!db) return;
       let settingsRes, productsRes, salesRes, itemsRes, expensesRes, customersRes, stockLogRes;
@@ -834,7 +881,7 @@
           footer: settingsRes.data.footer || ""
         };
       } else {
-        await cloudSaveSettings();
+        queueSync("settings", state.settings);
       }
 
       const itemsBySale = (itemsRes.data || []).reduce((map, item) => {
@@ -855,27 +902,36 @@
       renderAll();
     }
 
-    async function cloudSaveSettings() {
+    async function startCloudSync() {
+      await syncPending();
+      await loadCloudData();
+      await syncPending();
+    }
+
+    async function cloudSaveSettings(settings = state.settings) {
       if (!db) return;
-      await cloudError("Supabase settings save failed", (await db.from("store_settings").upsert({ id: 1, ...state.settings })).error);
+      const { error } = await db.from("store_settings").upsert({ id: 1, ...settings });
+      if (error) throw error;
     }
 
     async function cloudSaveProduct(product) {
       if (!db) return;
-      await cloudError("Supabase product save failed", (await db.from("products").upsert(productToDb(product))).error);
+      const { error } = await db.from("products").upsert(productToDb(product));
+      if (error) throw error;
     }
 
     async function cloudSaveProducts(products) {
       if (!db || !products.length) return;
-      await cloudError("Supabase products save failed", (await db.from("products").upsert(products.map(productToDb))).error);
+      const { error } = await db.from("products").upsert(products.map(productToDb));
+      if (error) throw error;
     }
 
     async function cloudSaveSale(sale) {
       if (!db) return;
-      const saleResult = await db.from("sales").insert(saleToDb(sale));
-      if (await cloudError("Supabase sale save failed", saleResult.error)) return;
-      const rows = sale.items.map(i => ({
-        id: uid("I"),
+      const saleResult = await db.from("sales").upsert(saleToDb(sale));
+      if (saleResult.error) throw saleResult.error;
+      const rows = sale.items.map((i, index) => ({
+        id: `${sale.id}-${index}`,
         sale_id: sale.id,
         product_id: i.id,
         product_name: i.name,
@@ -886,38 +942,43 @@
         total: i.total,
         profit: i.profit
       }));
-      await cloudError("Supabase sale items save failed", (await db.from("sale_items").insert(rows)).error);
+      const itemsResult = await db.from("sale_items").upsert(rows);
+      if (itemsResult.error) throw itemsResult.error;
     }
 
     async function cloudSaveCustomer(customer) {
       if (!db) return;
-      await cloudError("Supabase customer save failed", (await db.from("customers").upsert({
+      const { error } = await db.from("customers").upsert({
         name: customer.name,
         balance: customer.balance,
         last_activity: customer.lastActivity
-      })).error);
+      });
+      if (error) throw error;
     }
 
     async function cloudSaveExpense(expense) {
       if (!db) return;
-      await cloudError("Supabase expense save failed", (await db.from("expenses").upsert(expense)).error);
+      const { error } = await db.from("expenses").upsert(expense);
+      if (error) throw error;
     }
 
     async function cloudDeleteExpense(id) {
       if (!db) return;
-      await cloudError("Supabase expense delete failed", (await db.from("expenses").delete().eq("id", id)).error);
+      const { error } = await db.from("expenses").delete().eq("id", id);
+      if (error) throw error;
     }
 
     async function cloudSaveStockLog(log) {
       if (!db) return;
-      await cloudError("Supabase stock log save failed", (await db.from("stock_logs").insert({
+      const { error } = await db.from("stock_logs").upsert({
         id: log.id,
         product_id: log.productId,
         product_name: log.product,
         qty: log.qty,
         reason: log.reason,
         created_at: log.date
-      })).error);
+      });
+      if (error) throw error;
     }
 
     function money(value) {
@@ -1048,11 +1109,9 @@
       save();
       renderReceipt(sale);
       document.getElementById("receiptWrap").classList.remove("hide");
-      Promise.all([
-        cloudSaveProducts(state.products),
-        cloudSaveSale(sale),
-        payment === "Credit" ? cloudSaveCustomer(state.customers[customer.toLowerCase()]) : Promise.resolve()
-      ]).catch(error => cloudError("Supabase sale sync failed", error));
+      queueSync("products", state.products);
+      queueSync("sale", sale);
+      if (payment === "Credit") queueSync("customer", state.customers[customer.toLowerCase()]);
     }
 
     function showNotice(message) {
@@ -1122,8 +1181,8 @@
       if (index >= 0) state.products[index] = product;
       else state.products.unshift(product);
       resetProductForm();
-      await cloudSaveProduct(product);
       save();
+      queueSync("product", product);
     }
 
     async function adjustStock(e) {
@@ -1136,9 +1195,9 @@
       const log = { id: uid("L"), productId: id, product: product.name, qty, reason: document.getElementById("stockReason").value, date: new Date().toISOString() };
       state.stockLog.unshift(log);
       e.target.reset();
-      await cloudSaveProduct(product);
-      await cloudSaveStockLog(log);
       save();
+      queueSync("product", product);
+      queueSync("stockLog", log);
     }
 
     function renderReports() {
@@ -1224,8 +1283,8 @@
       if (!state.customers[key] || amount <= 0) return;
       state.customers[key].balance = Math.max(0, state.customers[key].balance - amount);
       state.customers[key].lastActivity = new Date().toISOString();
-      await cloudSaveCustomer(state.customers[key]);
       save();
+      queueSync("customer", state.customers[key]);
     }
 
     function renderExpenses() {
@@ -1247,14 +1306,14 @@
       state.expenses.unshift(expense);
       e.target.reset();
       document.getElementById("eDate").value = todayISO();
-      await cloudSaveExpense(expense);
       save();
+      queueSync("expense", expense);
     }
 
     async function deleteExpense(id) {
       state.expenses = state.expenses.filter(e => e.id !== id);
-      await cloudDeleteExpense(id);
       save();
+      queueSync("deleteExpense", { id });
     }
 
     function renderSettings() {
@@ -1274,8 +1333,8 @@
         currency: document.getElementById("sCurrency").value.trim() || "NGN",
         footer: document.getElementById("sFooter").value.trim()
       };
-      await cloudSaveSettings();
       save();
+      queueSync("settings", state.settings);
     }
 
     function renderCategories() {
@@ -1354,12 +1413,14 @@
     document.getElementById("exportSales").addEventListener("click", () => exportCSV("pa-gerrys-sales.csv", [["Receipt","Date","Customer","Payment","Total","Profit"], ...state.sales.map(s => [s.receiptNo,s.date,s.customer,s.payment,s.total,s.profit])]));
     document.getElementById("exportCustomers").addEventListener("click", () => exportCSV("pa-gerrys-customers.csv", [["Customer","Balance","Last Activity"], ...Object.values(state.customers).map(c => [c.name,c.balance,c.lastActivity])]));
     document.getElementById("exportExpenses").addEventListener("click", () => exportCSV("pa-gerrys-expenses.csv", [["Date","Category","Note","Amount"], ...state.expenses.map(e => [e.date,e.category,e.note,e.amount])]));
+    window.addEventListener("online", startCloudSync);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) startCloudSync(); });
 
     document.getElementById("eDate").value = todayISO();
     document.getElementById("reportDate").value = todayISO();
     renderSettings();
     renderAll();
-    loadCloudData();
+    startCloudSync();
     setInterval(() => document.getElementById("clock").textContent = currentDateTime(), 1000);
     document.getElementById("clock").textContent = currentDateTime();
   </script>
