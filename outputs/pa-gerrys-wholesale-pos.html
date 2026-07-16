@@ -1,0 +1,1367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PA GERRYS WHOLESALE POS</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18202a;
+      --muted: #647080;
+      --line: #d9dee7;
+      --panel: #ffffff;
+      --page: #f4f7fb;
+      --nav: #152338;
+      --nav2: #20324e;
+      --good: #13795b;
+      --warn: #b75d00;
+      --bad: #bc2f32;
+      --blue: #2364aa;
+      --cyan: #087990;
+      --amber: #91610d;
+      --shadow: 0 8px 24px rgba(24, 32, 42, .08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--ink);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 252px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--nav), var(--nav2));
+      color: #f8fbff;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .brand {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 6px 6px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #f5b942;
+      color: #142033;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      display: block;
+      color: #cdd8e6;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav button {
+      width: 100%;
+      min-height: 40px;
+      border: 0;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 9px;
+      align-items: center;
+      padding: 9px 10px;
+      background: transparent;
+      color: #e9f0f8;
+      text-align: left;
+    }
+
+    .nav button:hover, .nav button.active { background: rgba(255,255,255,.12); }
+    .nav svg, .toolbar svg, .icon-btn svg { width: 18px; height: 18px; stroke-width: 2; }
+
+    .side-metrics {
+      margin-top: auto;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-metric {
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(255,255,255,.07);
+    }
+
+    .side-metric small { color: #c9d5e4; display: block; }
+    .side-metric strong { display: block; font-size: 18px; margin-top: 3px; }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      min-height: 66px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 20px;
+    }
+
+    .topbar h2 { margin: 0; font-size: 20px; }
+    .topbar p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+
+    .clock {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .content {
+      padding: 18px 20px 24px;
+      overflow: auto;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .pos-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      min-height: 54px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-head h3 { margin: 0; font-size: 15px; }
+    .panel-body { padding: 14px; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search {
+      min-width: 220px;
+      flex: 1 1 260px;
+      position: relative;
+    }
+
+    .search input { padding-left: 34px; }
+    .search svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid #cbd3df;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    textarea { min-height: 80px; resize: vertical; }
+    label { display: grid; gap: 5px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    label span { color: var(--muted); }
+
+    .btn {
+      min-height: 38px;
+      border: 1px solid #bcc6d4;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .btn.good { background: var(--good); color: #fff; border-color: var(--good); }
+    .btn.warn { background: var(--warn); color: #fff; border-color: var(--warn); }
+    .btn.bad { background: var(--bad); color: #fff; border-color: var(--bad); }
+    .btn.ghost { background: #f7f9fc; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      border: 1px solid #c7d0dc;
+      background: #fff;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 10px;
+    }
+
+    .product {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+      min-height: 138px;
+    }
+
+    .product:hover { border-color: #8fb4df; }
+    .product h4 { margin: 0; font-size: 14px; line-height: 1.25; }
+    .product-meta { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+    .product strong { font-size: 18px; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #eaf1fb;
+      color: #254d77;
+    }
+
+    .pill.good { background: #e6f5ef; color: var(--good); }
+    .pill.warn { background: #fff3df; color: var(--warn); }
+    .pill.bad { background: #fde8e8; color: var(--bad); }
+    .pill.cyan { background: #e4f6f8; color: var(--cyan); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      background: #f8fafc;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .cart-table input { min-height: 30px; padding: 4px 6px; text-align: right; }
+    .cart-scroll { max-height: 315px; overflow: auto; }
+
+    .totals {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .total-row strong {
+      color: var(--ink);
+      font-size: 22px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .form-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .form-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 13px;
+      min-height: 86px;
+    }
+
+    .stat small { color: var(--muted); font-weight: 800; }
+    .stat strong { display: block; margin-top: 8px; font-size: 22px; }
+    .stat b { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; font-weight: 600; }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, .55fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .notice {
+      border-left: 4px solid var(--amber);
+      background: #fff8e8;
+      padding: 10px 12px;
+      color: #5f430c;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .receipt {
+      background: #fff;
+      color: #111;
+      border: 1px solid #aeb7c4;
+      padding: 16px;
+      font-family: "Courier New", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.35;
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .receipt h3 { text-align: center; margin: 0 0 5px; font-size: 16px; letter-spacing: 0; }
+    .receipt .receipt-center { text-align: center; }
+    .receipt .receipt-title { font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+    .receipt .line { border-top: 1px dashed #555; margin: 9px 0; }
+    .receipt .receipt-row { display: flex; justify-content: space-between; gap: 12px; }
+    .receipt .receipt-total { font-size: 15px; font-weight: 900; }
+    .hide { display: none !important; }
+
+    .mobile-menu { display: none; }
+
+    @media (max-width: 1060px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding: 10px;
+      }
+      .brand { grid-template-columns: 36px 1fr auto; padding-bottom: 8px; }
+      .brand-mark { width: 36px; height: 36px; }
+      .mobile-menu { display: inline-grid; }
+      .nav { display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .nav.open { display: grid; }
+      .side-metrics { display: none; }
+      .pos-grid, .split { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .topbar { align-items: flex-start; flex-direction: column; padding: 12px; }
+      .content { padding: 12px; }
+      .form-grid, .form-grid.three, .form-grid.two, .stats { grid-template-columns: 1fr; }
+      .span-2, .span-3, .span-4 { grid-column: auto; }
+      .toolbar { align-items: stretch; }
+      .toolbar .btn, .toolbar select, .search { width: 100%; flex-basis: 100%; }
+      .product-grid { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #receipt, #receipt * { visibility: visible; }
+      #receipt {
+        position: fixed;
+        inset: 0;
+        border: 0;
+        padding: 16px;
+        max-height: none;
+        overflow: visible;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">PG</div>
+        <div>
+          <h1>PA GERRYS WHOLESALE</h1>
+          <span>Point of Sale</span>
+        </div>
+        <button class="icon-btn mobile-menu" id="mobileMenu" title="Menu" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+
+      <nav class="nav" id="nav">
+        <button class="active" data-view="pos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span>Sales POS</span></button>
+        <button data-view="inventory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span>Inventory</span></button>
+        <button data-view="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M13 16V8"/><path d="M18 16v-3"/></svg><span>Profit Reports</span></button>
+        <button data-view="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Customers</span></button>
+        <button data-view="expenses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg><span>Expenses</span></button>
+        <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.08A1.7 1.7 0 0 0 8.96 19.36a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.08A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3.04V3a2 2 0 1 1 4 0v.08A1.7 1.7 0 0 0 15.04 4.64a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.36 9c.36.33.76.52 1.56.52H21a2 2 0 1 1 0 4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg><span>Settings</span></button>
+      </nav>
+
+      <div class="side-metrics">
+        <div class="side-metric"><small>Today Sales</small><strong id="sideSales">NGN 0</strong></div>
+        <div class="side-metric"><small>Today Profit</small><strong id="sideProfit">NGN 0</strong></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2 id="viewTitle">Sales POS</h2>
+          <p id="viewSub">Sell wholesale items, track stock, and print receipts.</p>
+        </div>
+        <div class="clock" id="clock"></div>
+      </header>
+
+      <section class="content">
+        <div class="view active" id="view-pos">
+          <div class="pos-grid">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Products</h3>
+                <div class="toolbar">
+                  <div class="search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input id="productSearch" placeholder="Search product, SKU, category">
+                  </div>
+                  <select id="categoryFilter" aria-label="Category filter"></select>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="product-grid" id="productGrid"></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Current Sale</h3>
+                <button class="btn ghost" id="clearCart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/></svg>Clear</button>
+              </div>
+              <div class="panel-body">
+                <div class="form-grid two">
+                  <label><span>Customer</span><input id="saleCustomer" placeholder="Walk-in customer"></label>
+                  <label><span>Payment</span><select id="paymentMethod"><option>Cash</option><option>Transfer</option><option>POS Card</option><option>Credit</option></select></label>
+                </div>
+                <div class="cart-scroll" style="margin-top:12px;">
+                  <table class="cart-table">
+                    <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th><th></th></tr></thead>
+                    <tbody id="cartBody"></tbody>
+                  </table>
+                </div>
+                <div class="totals">
+                  <div class="total-row"><span>Items</span><b id="cartItems">0</b></div>
+                  <div class="total-row"><span>Gross Profit</span><b id="cartProfit">NGN 0</b></div>
+                  <div class="total-row"><span>Total Due</span><strong id="cartTotal">NGN 0</strong></div>
+                </div>
+                <div class="toolbar" style="margin-top:12px;">
+                  <button class="btn good" id="checkout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6 9 17l-5-5"/></svg>Complete Sale</button>
+                  <button class="btn" id="printReceipt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>Print</button>
+                </div>
+                <div id="checkoutNotice" class="notice hide" style="margin-top:12px;"></div>
+                <div id="receiptWrap" class="hide" style="margin-top:14px;">
+                  <div class="panel-head" style="padding-left:0; padding-right:0; border-bottom:0;">
+                    <h3>Receipt</h3>
+                    <button class="btn primary" type="button" onclick="window.print()">Print Receipt</button>
+                  </div>
+                  <div class="receipt" id="receipt"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="view" id="view-inventory">
+          <div class="split">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Inventory List</h3>
+                <div class="toolbar">
+                  <button class="btn" id="exportInventory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Export CSV</button>
+                </div>
+              </div>
+              <div class="panel-body" style="overflow:auto; max-height:670px;">
+                <table>
+                  <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th class="num">Stock</th><th class="num">Cost</th><th class="num">Price</th><th class="num">Margin</th><th></th></tr></thead>
+                  <tbody id="inventoryBody"></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><h3 id="productFormTitle">Add Product</h3></div>
+              <div class="panel-body">
+                <form id="productForm" class="form-grid two">
+                  <input type="hidden" id="productId">
+                  <label class="span-2"><span>Product name</span><input id="pName" required></label>
+                  <label><span>SKU</span><input id="pSku" required></label>
+                  <label><span>Category</span><input id="pCategory" required></label>
+                  <label><span>Cost price</span><input id="pCost" type="number" min="0" step="1" required></label>
+                  <label><span>Selling price</span><input id="pPrice" type="number" min="0" step="1" required></label>
+                  <label><span>Stock qty</span><input id="pStock" type="number" min="0" step="1" required></label>
+                  <label><span>Low stock alert</span><input id="pReorder" type="number" min="0" step="1" required></label>
+                  <label class="span-2"><span>Supplier</span><input id="pSupplier"></label>
+                  <div class="toolbar span-2">
+                    <button class="btn primary" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>Save Product</button>
+                    <button class="btn" type="button" id="resetProduct">Reset</button>
+                  </div>
+                </form>
+                <div class="notice" style="margin-top:14px;">Use stock adjustment for received goods, breakages, or corrections.</div>
+                <form id="stockForm" class="form-grid two">
+                  <label class="span-2"><span>Product</span><select id="stockProduct"></select></label>
+                  <label><span>Adjustment</span><input id="stockQty" type="number" step="1" required placeholder="e.g. 25 or -2"></label>
+                  <label><span>Reason</span><select id="stockReason"><option>Restock</option><option>Correction</option><option>Damaged</option><option>Returned</option></select></label>
+                  <button class="btn warn span-2" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Adjust Stock</button>
+                </form>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="view" id="view-reports">
+          <div class="stats">
+            <div class="stat"><small>TODAY SALES</small><strong id="statTodaySales">NGN 0</strong><b id="statTodayOrders">0 orders</b></div>
+            <div class="stat"><small>TODAY PROFIT</small><strong id="statTodayProfit">NGN 0</strong><b id="statTodayMargin">0% margin</b></div>
+            <div class="stat"><small>STOCK VALUE</small><strong id="statStockValue">NGN 0</strong><b>at cost price</b></div>
+            <div class="stat"><small>LOW STOCK</small><strong id="statLowStock">0</strong><b>items to reorder</b></div>
+          </div>
+          <div class="split">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Sales History</h3>
+                <div class="toolbar">
+                  <input id="reportDate" type="date" style="width:170px;">
+                  <button class="btn" id="exportSales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Export CSV</button>
+                </div>
+              </div>
+              <div class="panel-body" style="overflow:auto; max-height:520px;">
+                <table>
+                  <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Payment</th><th class="num">Sales</th><th class="num">Profit</th><th></th></tr></thead>
+                  <tbody id="salesBody"></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><h3>Receipt Preview</h3></div>
+              <div class="panel-body">
+                <div class="receipt" id="receiptReport"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="view" id="view-customers">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Customer Balances</h3>
+              <button class="btn" id="exportCustomers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Export CSV</button>
+            </div>
+            <div class="panel-body">
+              <div class="notice">Credit sales appear here automatically. Record payments when customers settle their balance.</div>
+              <div style="overflow:auto;">
+                <table>
+                  <thead><tr><th>Customer</th><th class="num">Credit Balance</th><th>Last Activity</th><th class="num">Payment</th><th></th></tr></thead>
+                  <tbody id="customersBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="view" id="view-expenses">
+          <div class="split">
+            <section class="panel">
+              <div class="panel-head"><h3>Expenses</h3><button class="btn" id="exportExpenses">Export CSV</button></div>
+              <div class="panel-body" style="overflow:auto; max-height:560px;">
+                <table>
+                  <thead><tr><th>Date</th><th>Category</th><th>Note</th><th class="num">Amount</th><th></th></tr></thead>
+                  <tbody id="expensesBody"></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><h3>Add Expense</h3></div>
+              <div class="panel-body">
+                <form id="expenseForm" class="form-grid two">
+                  <label><span>Date</span><input id="eDate" type="date" required></label>
+                  <label><span>Category</span><select id="eCategory"><option>Transport</option><option>Rent</option><option>Staff</option><option>Utilities</option><option>Repairs</option><option>Other</option></select></label>
+                  <label class="span-2"><span>Note</span><input id="eNote" required></label>
+                  <label class="span-2"><span>Amount</span><input id="eAmount" type="number" min="0" step="1" required></label>
+                  <button class="btn primary span-2" type="submit">Save Expense</button>
+                </form>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="view" id="view-settings">
+          <section class="panel">
+            <div class="panel-head"><h3>Store Settings</h3></div>
+            <div class="panel-body">
+              <form id="settingsForm" class="form-grid three">
+                <label><span>Store name</span><input id="sName" required></label>
+                <label><span>Phone</span><input id="sPhone"></label>
+                <label><span>Currency</span><input id="sCurrency" required></label>
+                <label class="span-3"><span>Address</span><input id="sAddress"></label>
+                <label class="span-3"><span>Receipt footer</span><input id="sFooter"></label>
+                <button class="btn primary" type="submit">Save Settings</button>
+                <button class="btn bad" type="button" id="resetDemo">Clear Local Data</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const storeKey = "paGerrysWholesalePOS.v2";
+    const supabaseUrl = "https://jchobwizoedvnfxkgibg.supabase.co";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjaG9id2l6b2Vkdm5meGtnaWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4ODk5OTUsImV4cCI6MjA5OTQ2NTk5NX0.LsJOwjtvXlhzM5dWAnAcIQPFqNZdu0eIyO18MjLo8Ek";
+    const db = window.supabase?.createClient(supabaseUrl, supabaseAnonKey);
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+    const uid = (prefix) => prefix + Math.random().toString(36).slice(2, 8).toUpperCase();
+
+    const demo = {
+      settings: {
+        name: "PA GERRYS WHOLESALE",
+        phone: "08141606223",
+        address: "Wholesale Store",
+        currency: "NGN",
+        footer: "For online orders call 08141606223"
+      },
+      products: [],
+      sales: [],
+      expenses: [],
+      customers: {},
+      stockLog: []
+    };
+
+    let state = load();
+    let cart = [];
+    let selectedReceipt = null;
+
+    function load() {
+      const raw = localStorage.getItem(storeKey);
+      if (!raw) return structuredClone(demo);
+      try {
+        return { ...structuredClone(demo), ...JSON.parse(raw) };
+      } catch {
+        return structuredClone(demo);
+      }
+    }
+
+    function save() {
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      renderAll();
+    }
+
+    function productToDb(p) {
+      return {
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        category: p.category,
+        cost: p.cost,
+        price: p.price,
+        stock: p.stock,
+        reorder: p.reorder,
+        supplier: p.supplier || ""
+      };
+    }
+
+    function productFromDb(p) {
+      return {
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        category: p.category,
+        cost: Number(p.cost || 0),
+        price: Number(p.price || 0),
+        stock: Number(p.stock || 0),
+        reorder: Number(p.reorder || 0),
+        supplier: p.supplier || ""
+      };
+    }
+
+    function saleToDb(s) {
+      return {
+        id: s.id,
+        receipt_no: s.receiptNo,
+        sale_date: s.date,
+        customer: s.customer,
+        payment: s.payment,
+        total: s.total,
+        cost: s.cost,
+        profit: s.profit
+      };
+    }
+
+    function saleFromDb(s, items) {
+      return {
+        id: s.id,
+        receiptNo: s.receipt_no,
+        date: s.sale_date,
+        customer: s.customer,
+        payment: s.payment,
+        total: Number(s.total || 0),
+        cost: Number(s.cost || 0),
+        profit: Number(s.profit || 0),
+        items: items.map(i => ({
+          id: i.product_id,
+          name: i.product_name,
+          sku: i.sku,
+          qty: Number(i.qty || 0),
+          price: Number(i.price || 0),
+          cost: Number(i.cost || 0),
+          total: Number(i.total || 0),
+          profit: Number(i.profit || 0)
+        }))
+      };
+    }
+
+    async function cloudError(label, error) {
+      if (error) console.warn(`${label}:`, error.message || error);
+      return error;
+    }
+
+    async function loadCloudData() {
+      if (!db) return;
+      let settingsRes, productsRes, salesRes, itemsRes, expensesRes, customersRes, stockLogRes;
+      try {
+        [settingsRes, productsRes, salesRes, itemsRes, expensesRes, customersRes, stockLogRes] = await Promise.all([
+          db.from("store_settings").select("*").eq("id", 1).maybeSingle(),
+          db.from("products").select("*").order("name"),
+          db.from("sales").select("*").order("sale_date", { ascending: false }),
+          db.from("sale_items").select("*"),
+          db.from("expenses").select("*").order("date", { ascending: false }),
+          db.from("customers").select("*").order("name"),
+          db.from("stock_logs").select("*").order("created_at", { ascending: false })
+        ]);
+      } catch (error) {
+        await cloudError("Supabase connection failed", error);
+        return;
+      }
+
+      const errors = [settingsRes, productsRes, salesRes, itemsRes, expensesRes, customersRes, stockLogRes].filter(r => r.error);
+      if (errors.length) {
+        errors.forEach(r => cloudError("Supabase load failed", r.error));
+        return;
+      }
+
+      if (settingsRes.data) {
+        state.settings = {
+          name: settingsRes.data.name || demo.settings.name,
+          phone: settingsRes.data.phone || "",
+          address: settingsRes.data.address || "",
+          currency: settingsRes.data.currency || "NGN",
+          footer: settingsRes.data.footer || ""
+        };
+      } else {
+        await cloudSaveSettings();
+      }
+
+      const itemsBySale = (itemsRes.data || []).reduce((map, item) => {
+        (map[item.sale_id] ||= []).push(item);
+        return map;
+      }, {});
+
+      state.products = (productsRes.data || []).map(productFromDb);
+      state.sales = (salesRes.data || []).map(s => saleFromDb(s, itemsBySale[s.id] || []));
+      state.expenses = (expensesRes.data || []).map(e => ({ id: e.id, date: e.date, category: e.category, note: e.note, amount: Number(e.amount || 0) }));
+      state.customers = (customersRes.data || []).reduce((map, c) => {
+        map[c.name.toLowerCase()] = { name: c.name, balance: Number(c.balance || 0), lastActivity: c.last_activity || "" };
+        return map;
+      }, {});
+      state.stockLog = (stockLogRes.data || []).map(l => ({ id: l.id, productId: l.product_id, product: l.product_name, qty: Number(l.qty || 0), reason: l.reason, date: l.created_at }));
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      renderSettings();
+      renderAll();
+    }
+
+    async function cloudSaveSettings() {
+      if (!db) return;
+      await cloudError("Supabase settings save failed", (await db.from("store_settings").upsert({ id: 1, ...state.settings })).error);
+    }
+
+    async function cloudSaveProduct(product) {
+      if (!db) return;
+      await cloudError("Supabase product save failed", (await db.from("products").upsert(productToDb(product))).error);
+    }
+
+    async function cloudSaveProducts(products) {
+      if (!db || !products.length) return;
+      await cloudError("Supabase products save failed", (await db.from("products").upsert(products.map(productToDb))).error);
+    }
+
+    async function cloudSaveSale(sale) {
+      if (!db) return;
+      const saleResult = await db.from("sales").insert(saleToDb(sale));
+      if (await cloudError("Supabase sale save failed", saleResult.error)) return;
+      const rows = sale.items.map(i => ({
+        id: uid("I"),
+        sale_id: sale.id,
+        product_id: i.id,
+        product_name: i.name,
+        sku: i.sku,
+        qty: i.qty,
+        price: i.price,
+        cost: i.cost,
+        total: i.total,
+        profit: i.profit
+      }));
+      await cloudError("Supabase sale items save failed", (await db.from("sale_items").insert(rows)).error);
+    }
+
+    async function cloudSaveCustomer(customer) {
+      if (!db) return;
+      await cloudError("Supabase customer save failed", (await db.from("customers").upsert({
+        name: customer.name,
+        balance: customer.balance,
+        last_activity: customer.lastActivity
+      })).error);
+    }
+
+    async function cloudSaveExpense(expense) {
+      if (!db) return;
+      await cloudError("Supabase expense save failed", (await db.from("expenses").upsert(expense)).error);
+    }
+
+    async function cloudDeleteExpense(id) {
+      if (!db) return;
+      await cloudError("Supabase expense delete failed", (await db.from("expenses").delete().eq("id", id)).error);
+    }
+
+    async function cloudSaveStockLog(log) {
+      if (!db) return;
+      await cloudError("Supabase stock log save failed", (await db.from("stock_logs").insert({
+        id: log.id,
+        product_id: log.productId,
+        product_name: log.product,
+        qty: log.qty,
+        reason: log.reason,
+        created_at: log.date
+      })).error);
+    }
+
+    function money(value) {
+      return `${state.settings.currency} ${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    }
+
+    function currentDateTime() {
+      return new Date().toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    }
+
+    function productStatus(p) {
+      if (p.stock <= 0) return ["Out", "bad"];
+      if (p.stock <= p.reorder) return ["Low", "warn"];
+      return ["In stock", "good"];
+    }
+
+    function addToCart(id) {
+      const product = state.products.find(p => p.id === id);
+      if (!product || product.stock <= 0) return;
+      const item = cart.find(i => i.id === id);
+      if (item) {
+        if (item.qty < product.stock) item.qty += 1;
+      } else {
+        cart.push({ id, qty: 1 });
+      }
+      renderCart();
+    }
+
+    function cartTotals() {
+      return cart.reduce((acc, item) => {
+        const p = state.products.find(x => x.id === item.id);
+        if (!p) return acc;
+        acc.items += item.qty;
+        acc.sales += p.price * item.qty;
+        acc.cost += p.cost * item.qty;
+        return acc;
+      }, { items: 0, sales: 0, cost: 0, profit: 0 });
+    }
+
+    function renderProducts() {
+      const q = document.getElementById("productSearch").value.trim().toLowerCase();
+      const cat = document.getElementById("categoryFilter").value;
+      const grid = document.getElementById("productGrid");
+      const products = state.products.filter(p => {
+        const hay = `${p.name} ${p.sku} ${p.category}`.toLowerCase();
+        return (!q || hay.includes(q)) && (!cat || p.category === cat);
+      });
+      grid.innerHTML = products.map(p => {
+        const [label, cls] = productStatus(p);
+        return `<button class="product" onclick="addToCart('${p.id}')" ${p.stock <= 0 ? "disabled" : ""}>
+          <div class="product-meta"><span>${p.sku}</span><span class="pill ${cls}">${label}</span></div>
+          <h4>${escapeHtml(p.name)}</h4>
+          <div class="product-meta"><span>${escapeHtml(p.category)}</span><span>${p.stock} left</span></div>
+          <strong>${money(p.price)}</strong>
+        </button>`;
+      }).join("") || `<div class="notice">No products match your search.</div>`;
+    }
+
+    function renderCart() {
+      const body = document.getElementById("cartBody");
+      body.innerHTML = cart.map(item => {
+        const p = state.products.find(x => x.id === item.id);
+        if (!p) return "";
+        return `<tr>
+          <td><b>${escapeHtml(p.name)}</b><br><span style="color:var(--muted)">${money(p.price)} each</span></td>
+          <td class="num"><input type="number" min="1" max="${p.stock}" value="${item.qty}" onchange="setCartQty('${item.id}', this.value)"></td>
+          <td class="num">${money(p.price * item.qty)}</td>
+          <td class="num"><button class="icon-btn" title="Remove" onclick="removeCart('${item.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="4" style="color:var(--muted); text-align:center; padding:24px;">No items selected</td></tr>`;
+      const totals = cartTotals();
+      totals.profit = totals.sales - totals.cost;
+      document.getElementById("cartItems").textContent = totals.items;
+      document.getElementById("cartTotal").textContent = money(totals.sales);
+      document.getElementById("cartProfit").textContent = money(totals.profit);
+    }
+
+    function setCartQty(id, value) {
+      const p = state.products.find(x => x.id === id);
+      const item = cart.find(x => x.id === id);
+      if (!p || !item) return;
+      item.qty = Math.max(1, Math.min(Number(value || 1), p.stock));
+      renderCart();
+    }
+
+    function removeCart(id) {
+      cart = cart.filter(i => i.id !== id);
+      renderCart();
+    }
+
+    async function completeSale() {
+      const totals = cartTotals();
+      totals.profit = totals.sales - totals.cost;
+      if (!cart.length) return showNotice("Add at least one product before checkout.");
+      const receiptNo = "PG-" + new Date().toISOString().replace(/\D/g, "").slice(2, 12);
+      const customer = document.getElementById("saleCustomer").value.trim() || "Walk-in customer";
+      const payment = document.getElementById("paymentMethod").value;
+      const sale = {
+        id: uid("S"),
+        receiptNo,
+        date: new Date().toISOString(),
+        customer,
+        payment,
+        items: cart.map(item => {
+          const p = state.products.find(x => x.id === item.id);
+          return { id: p.id, name: p.name, sku: p.sku, qty: item.qty, price: p.price, cost: p.cost, total: p.price * item.qty, profit: (p.price - p.cost) * item.qty };
+        }),
+        total: totals.sales,
+        cost: totals.cost,
+        profit: totals.profit
+      };
+      sale.items.forEach(item => {
+        const p = state.products.find(x => x.id === item.id);
+        p.stock -= item.qty;
+      });
+      if (payment === "Credit") {
+        const key = customer.toLowerCase();
+        const row = state.customers[key] || { name: customer, balance: 0, lastActivity: "" };
+        row.balance += sale.total;
+        row.lastActivity = sale.date;
+        state.customers[key] = row;
+      }
+      state.sales.unshift(sale);
+      selectedReceipt = sale;
+      cart = [];
+      document.getElementById("saleCustomer").value = "";
+      showNotice(`Sale completed: ${receiptNo}`);
+      save();
+      renderReceipt(sale);
+      document.getElementById("receiptWrap").classList.remove("hide");
+      Promise.all([
+        cloudSaveProducts(state.products),
+        cloudSaveSale(sale),
+        payment === "Credit" ? cloudSaveCustomer(state.customers[customer.toLowerCase()]) : Promise.resolve()
+      ]).catch(error => cloudError("Supabase sale sync failed", error));
+    }
+
+    function showNotice(message) {
+      const el = document.getElementById("checkoutNotice");
+      el.textContent = message;
+      el.classList.remove("hide");
+      setTimeout(() => el.classList.add("hide"), 4200);
+    }
+
+    function renderInventory() {
+      document.getElementById("inventoryBody").innerHTML = state.products.map(p => {
+        const margin = p.price ? ((p.price - p.cost) / p.price * 100).toFixed(1) : 0;
+        const [label, cls] = productStatus(p);
+        return `<tr>
+          <td><b>${escapeHtml(p.name)}</b><br><span class="pill ${cls}">${label}</span></td>
+          <td>${escapeHtml(p.sku)}</td>
+          <td>${escapeHtml(p.category)}</td>
+          <td class="num">${p.stock}</td>
+          <td class="num">${money(p.cost)}</td>
+          <td class="num">${money(p.price)}</td>
+          <td class="num">${margin}%</td>
+          <td class="num"><button class="icon-btn" title="Edit" onclick="editProduct('${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td>
+        </tr>`;
+      }).join("");
+
+      const options = state.products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${p.stock})</option>`).join("");
+      document.getElementById("stockProduct").innerHTML = options;
+    }
+
+    function editProduct(id) {
+      const p = state.products.find(x => x.id === id);
+      if (!p) return;
+      setView("inventory");
+      document.getElementById("productFormTitle").textContent = "Edit Product";
+      document.getElementById("productId").value = p.id;
+      document.getElementById("pName").value = p.name;
+      document.getElementById("pSku").value = p.sku;
+      document.getElementById("pCategory").value = p.category;
+      document.getElementById("pCost").value = p.cost;
+      document.getElementById("pPrice").value = p.price;
+      document.getElementById("pStock").value = p.stock;
+      document.getElementById("pReorder").value = p.reorder;
+      document.getElementById("pSupplier").value = p.supplier || "";
+    }
+
+    function resetProductForm() {
+      document.getElementById("productFormTitle").textContent = "Add Product";
+      document.getElementById("productForm").reset();
+      document.getElementById("productId").value = "";
+    }
+
+    async function saveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById("productId").value || uid("P");
+      const product = {
+        id,
+        name: document.getElementById("pName").value.trim(),
+        sku: document.getElementById("pSku").value.trim(),
+        category: document.getElementById("pCategory").value.trim(),
+        cost: Number(document.getElementById("pCost").value),
+        price: Number(document.getElementById("pPrice").value),
+        stock: Number(document.getElementById("pStock").value),
+        reorder: Number(document.getElementById("pReorder").value),
+        supplier: document.getElementById("pSupplier").value.trim()
+      };
+      const index = state.products.findIndex(p => p.id === id);
+      if (index >= 0) state.products[index] = product;
+      else state.products.unshift(product);
+      resetProductForm();
+      await cloudSaveProduct(product);
+      save();
+    }
+
+    async function adjustStock(e) {
+      e.preventDefault();
+      const id = document.getElementById("stockProduct").value;
+      const qty = Number(document.getElementById("stockQty").value);
+      const product = state.products.find(p => p.id === id);
+      if (!product || !qty) return;
+      product.stock = Math.max(0, product.stock + qty);
+      const log = { id: uid("L"), productId: id, product: product.name, qty, reason: document.getElementById("stockReason").value, date: new Date().toISOString() };
+      state.stockLog.unshift(log);
+      e.target.reset();
+      await cloudSaveProduct(product);
+      await cloudSaveStockLog(log);
+      save();
+    }
+
+    function renderReports() {
+      const date = document.getElementById("reportDate").value;
+      const sales = state.sales.filter(s => !date || s.date.slice(0, 10) === date);
+      document.getElementById("salesBody").innerHTML = sales.map(s => `<tr>
+        <td><b>${s.receiptNo}</b></td>
+        <td>${new Date(s.date).toLocaleString()}</td>
+        <td>${escapeHtml(s.customer)}</td>
+        <td>${s.payment}</td>
+        <td class="num">${money(s.total)}</td>
+        <td class="num">${money(s.profit)}</td>
+        <td class="num"><button class="btn ghost" onclick="showReceipt('${s.id}')">View</button></td>
+      </tr>`).join("") || `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:24px;">No sales found.</td></tr>`;
+
+      const todaySales = state.sales.filter(s => s.date.slice(0, 10) === todayISO());
+      const salesTotal = todaySales.reduce((n, s) => n + s.total, 0);
+      const profitTotal = todaySales.reduce((n, s) => n + s.profit, 0);
+      const stockValue = state.products.reduce((n, p) => n + p.cost * p.stock, 0);
+      const lowStock = state.products.filter(p => p.stock <= p.reorder).length;
+      document.getElementById("statTodaySales").textContent = money(salesTotal);
+      document.getElementById("statTodayOrders").textContent = `${todaySales.length} orders`;
+      document.getElementById("statTodayProfit").textContent = money(profitTotal);
+      document.getElementById("statTodayMargin").textContent = salesTotal ? `${(profitTotal / salesTotal * 100).toFixed(1)}% margin` : "0% margin";
+      document.getElementById("statStockValue").textContent = money(stockValue);
+      document.getElementById("statLowStock").textContent = lowStock;
+      document.getElementById("sideSales").textContent = money(salesTotal);
+      document.getElementById("sideProfit").textContent = money(profitTotal);
+      if (!selectedReceipt && state.sales[0]) selectedReceipt = state.sales[0];
+      renderReceipt(selectedReceipt);
+    }
+
+    function showReceipt(id) {
+      selectedReceipt = state.sales.find(s => s.id === id);
+      renderReceipt(selectedReceipt);
+    }
+
+    function renderReceipt(sale) {
+      const receipts = [document.getElementById("receipt"), document.getElementById("receiptReport")].filter(Boolean);
+      if (!sale) {
+        receipts.forEach(el => el.innerHTML = "<h3>PA GERRYS WHOLESALE</h3><div class='line'></div><p>No receipt selected.</p>");
+        return;
+      }
+      const receiptHtml = `<h3>${escapeHtml(state.settings.name)}</h3>
+        <div class="receipt-center">
+          ${escapeHtml(state.settings.address || "")}<br>
+          Phone: ${escapeHtml(state.settings.phone || "08141606223")}<br>
+          Online Orders: 08141606223
+          <div class="receipt-title">Official Sales Receipt</div>
+        </div>
+        <div class="line"></div>
+        <div class="receipt-row"><span>Receipt No:</span><b>${sale.receiptNo}</b></div>
+        <div class="receipt-row"><span>Date:</span><span>${new Date(sale.date).toLocaleString()}</span></div>
+        <div class="receipt-row"><span>Customer:</span><span>${escapeHtml(sale.customer)}</span></div>
+        <div class="receipt-row"><span>Payment:</span><span>${sale.payment}</span></div>
+        <div class="line"></div>
+        ${sale.items.map(i => `
+          <div><b>${escapeHtml(i.name)}</b></div>
+          <div class="receipt-row"><span>${i.qty} x ${money(i.price)}</span><span>${money(i.total)}</span></div>
+        `).join("")}
+        <div class="line"></div>
+        <div class="receipt-row receipt-total"><span>TOTAL</span><span>${money(sale.total)}</span></div>
+        <div class="line"></div>
+        <div class="receipt-center">${escapeHtml(state.settings.footer || "For online orders call 08141606223")}</div>`;
+      receipts.forEach(el => el.innerHTML = receiptHtml);
+    }
+
+    function renderCustomers() {
+      const rows = Object.values(state.customers).filter(c => c.balance > 0);
+      document.getElementById("customersBody").innerHTML = rows.map(c => `<tr>
+        <td><b>${escapeHtml(c.name)}</b></td>
+        <td class="num">${money(c.balance)}</td>
+        <td>${c.lastActivity ? new Date(c.lastActivity).toLocaleString() : ""}</td>
+        <td class="num"><input type="number" min="0" step="1" id="pay-${slug(c.name)}" style="max-width:130px; margin-left:auto;"></td>
+        <td class="num"><button class="btn good" onclick="recordPayment('${escapeAttr(c.name)}')">Record</button></td>
+      </tr>`).join("") || `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:24px;">No customer credit balances.</td></tr>`;
+    }
+
+    async function recordPayment(name) {
+      const key = name.toLowerCase();
+      const input = document.getElementById("pay-" + slug(name));
+      const amount = Number(input.value || 0);
+      if (!state.customers[key] || amount <= 0) return;
+      state.customers[key].balance = Math.max(0, state.customers[key].balance - amount);
+      state.customers[key].lastActivity = new Date().toISOString();
+      await cloudSaveCustomer(state.customers[key]);
+      save();
+    }
+
+    function renderExpenses() {
+      document.getElementById("expensesBody").innerHTML = state.expenses.map(e => `<tr>
+        <td>${e.date}</td><td>${e.category}</td><td>${escapeHtml(e.note)}</td><td class="num">${money(e.amount)}</td>
+        <td class="num"><button class="icon-btn" onclick="deleteExpense('${e.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/></svg></button></td>
+      </tr>`).join("") || `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:24px;">No expenses recorded.</td></tr>`;
+    }
+
+    async function saveExpense(e) {
+      e.preventDefault();
+      const expense = {
+        id: uid("E"),
+        date: document.getElementById("eDate").value,
+        category: document.getElementById("eCategory").value,
+        note: document.getElementById("eNote").value.trim(),
+        amount: Number(document.getElementById("eAmount").value)
+      };
+      state.expenses.unshift(expense);
+      e.target.reset();
+      document.getElementById("eDate").value = todayISO();
+      await cloudSaveExpense(expense);
+      save();
+    }
+
+    async function deleteExpense(id) {
+      state.expenses = state.expenses.filter(e => e.id !== id);
+      await cloudDeleteExpense(id);
+      save();
+    }
+
+    function renderSettings() {
+      document.getElementById("sName").value = state.settings.name;
+      document.getElementById("sPhone").value = state.settings.phone;
+      document.getElementById("sAddress").value = state.settings.address;
+      document.getElementById("sCurrency").value = state.settings.currency;
+      document.getElementById("sFooter").value = state.settings.footer;
+    }
+
+    async function saveSettings(e) {
+      e.preventDefault();
+      state.settings = {
+        name: document.getElementById("sName").value.trim(),
+        phone: document.getElementById("sPhone").value.trim(),
+        address: document.getElementById("sAddress").value.trim(),
+        currency: document.getElementById("sCurrency").value.trim() || "NGN",
+        footer: document.getElementById("sFooter").value.trim()
+      };
+      await cloudSaveSettings();
+      save();
+    }
+
+    function renderCategories() {
+      const current = document.getElementById("categoryFilter").value;
+      const cats = [...new Set(state.products.map(p => p.category))].sort();
+      document.getElementById("categoryFilter").innerHTML = `<option value="">All categories</option>` + cats.map(c => `<option>${escapeHtml(c)}</option>`).join("");
+      document.getElementById("categoryFilter").value = cats.includes(current) ? current : "";
+    }
+
+    function setView(view) {
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.getElementById("view-" + view).classList.add("active");
+      document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+      const titles = {
+        pos: ["Sales POS", "Sell wholesale items, track stock, and print receipts."],
+        inventory: ["Inventory", "Add products, update price, and monitor low stock."],
+        reports: ["Profit Reports", "Review sales, gross profit, inventory value, and receipts."],
+        customers: ["Customers", "Track credit sales and payments."],
+        expenses: ["Expenses", "Record business costs for cleaner profit checks."],
+        settings: ["Settings", "Update store details shown on receipts."]
+      };
+      document.getElementById("viewTitle").textContent = titles[view][0];
+      document.getElementById("viewSub").textContent = titles[view][1];
+      document.getElementById("nav").classList.remove("open");
+      renderAll();
+    }
+
+    function exportCSV(filename, rows) {
+      const csv = rows.map(row => row.map(cell => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function escapeAttr(text) {
+      return String(text ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    }
+
+    function slug(text) {
+      return String(text).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    }
+
+    function renderAll() {
+      renderCategories();
+      renderProducts();
+      renderCart();
+      renderInventory();
+      renderReports();
+      renderCustomers();
+      renderExpenses();
+    }
+
+    document.querySelectorAll(".nav button").forEach(button => button.addEventListener("click", () => setView(button.dataset.view)));
+    document.getElementById("mobileMenu").addEventListener("click", () => document.getElementById("nav").classList.toggle("open"));
+    document.getElementById("productSearch").addEventListener("input", renderProducts);
+    document.getElementById("categoryFilter").addEventListener("change", renderProducts);
+    document.getElementById("clearCart").addEventListener("click", () => { cart = []; renderCart(); });
+    document.getElementById("checkout").addEventListener("click", completeSale);
+    document.getElementById("printReceipt").addEventListener("click", () => window.print());
+    document.getElementById("productForm").addEventListener("submit", saveProduct);
+    document.getElementById("resetProduct").addEventListener("click", resetProductForm);
+    document.getElementById("stockForm").addEventListener("submit", adjustStock);
+    document.getElementById("reportDate").addEventListener("change", renderReports);
+    document.getElementById("expenseForm").addEventListener("submit", saveExpense);
+    document.getElementById("settingsForm").addEventListener("submit", saveSettings);
+    document.getElementById("resetDemo").addEventListener("click", () => { if (confirm("Clear local POS cache on this browser? Supabase data will stay online.")) { state = structuredClone(demo); cart = []; selectedReceipt = null; save(); renderSettings(); } });
+    document.getElementById("exportInventory").addEventListener("click", () => exportCSV("pa-gerrys-inventory.csv", [["Product","SKU","Category","Stock","Cost","Price","Supplier"], ...state.products.map(p => [p.name,p.sku,p.category,p.stock,p.cost,p.price,p.supplier])]));
+    document.getElementById("exportSales").addEventListener("click", () => exportCSV("pa-gerrys-sales.csv", [["Receipt","Date","Customer","Payment","Total","Profit"], ...state.sales.map(s => [s.receiptNo,s.date,s.customer,s.payment,s.total,s.profit])]));
+    document.getElementById("exportCustomers").addEventListener("click", () => exportCSV("pa-gerrys-customers.csv", [["Customer","Balance","Last Activity"], ...Object.values(state.customers).map(c => [c.name,c.balance,c.lastActivity])]));
+    document.getElementById("exportExpenses").addEventListener("click", () => exportCSV("pa-gerrys-expenses.csv", [["Date","Category","Note","Amount"], ...state.expenses.map(e => [e.date,e.category,e.note,e.amount])]));
+
+    document.getElementById("eDate").value = todayISO();
+    document.getElementById("reportDate").value = todayISO();
+    renderSettings();
+    renderAll();
+    loadCloudData();
+    setInterval(() => document.getElementById("clock").textContent = currentDateTime(), 1000);
+    document.getElementById("clock").textContent = currentDateTime();
+  </script>
+</body>
+</html>
