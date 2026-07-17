@@ -390,22 +390,23 @@
 
     .receipt {
       background: #fff;
-      color: #111;
+      color: #000;
       border: 1px solid #aeb7c4;
       padding: 16px;
       font-family: "Courier New", Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.35;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.45;
       max-height: 520px;
       overflow: auto;
     }
 
-    .receipt h3 { text-align: center; margin: 0 0 5px; font-size: 16px; letter-spacing: 0; }
+    .receipt h3 { text-align: center; margin: 0 0 5px; font-size: 19px; font-weight: 900; letter-spacing: 0; }
     .receipt .receipt-center { text-align: center; }
-    .receipt .receipt-title { font-weight: 700; text-transform: uppercase; margin-top: 6px; }
-    .receipt .line { border-top: 1px dashed #555; margin: 9px 0; }
+    .receipt .receipt-title { font-weight: 900; text-transform: uppercase; margin-top: 6px; }
+    .receipt .line { border-top: 2px dashed #000; margin: 9px 0; }
     .receipt .receipt-row { display: flex; justify-content: space-between; gap: 12px; }
-    .receipt .receipt-total { font-size: 15px; font-weight: 900; }
+    .receipt .receipt-total { font-size: 18px; font-weight: 900; }
     .hide { display: none !important; }
 
     .mobile-menu { display: none; }
@@ -462,20 +463,29 @@
         min-height: 210mm;
         border: 0;
         box-shadow: none;
-        padding: 4mm;
+        padding: 3mm;
         max-height: none;
         overflow: visible;
-        font-size: 10px;
-        line-height: 1.25;
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.35;
+        color: #000;
       }
 
       #receipt h3 {
-        font-size: 13px;
-        margin-bottom: 3px;
+        font-size: 18px;
+        font-weight: 900;
+        margin-bottom: 4px;
       }
 
       #receipt .line {
-        margin: 5px 0;
+        border-top: 2px dashed #000;
+        margin: 6px 0;
+      }
+
+      #receipt .receipt-total {
+        font-size: 17px;
+        font-weight: 900;
       }
     }
   </style>
