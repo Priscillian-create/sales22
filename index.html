@@ -439,15 +439,43 @@
     }
 
     @media print {
+      @page {
+        size: 80mm 210mm;
+        margin: 0;
+      }
+
+      html, body {
+        width: 80mm;
+        min-height: 210mm;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+      }
+
       body * { visibility: hidden; }
       #receipt, #receipt * { visibility: visible; }
       #receipt {
-        position: fixed;
-        inset: 0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        min-height: 210mm;
         border: 0;
-        padding: 16px;
+        box-shadow: none;
+        padding: 4mm;
         max-height: none;
         overflow: visible;
+        font-size: 10px;
+        line-height: 1.25;
+      }
+
+      #receipt h3 {
+        font-size: 13px;
+        margin-bottom: 3px;
+      }
+
+      #receipt .line {
+        margin: 5px 0;
       }
     }
   </style>
